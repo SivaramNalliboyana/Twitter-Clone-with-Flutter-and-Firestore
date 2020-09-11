@@ -1,16 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flitter/signup.dart';
-import 'package:flitter/variables.dart';
 import 'package:flutter/material.dart';
+import 'package:twitter/signup.dart';
+import 'package:twitter/utils/variables.dart';
 
 import 'home.dart';
 
-class Navigation extends StatefulWidget {
+class NavigationPage extends StatefulWidget {
   @override
-  _NavigationState createState() => _NavigationState();
+  _NavigationPageState createState() => _NavigationPageState();
 }
 
-class _NavigationState extends State<Navigation> {
+class _NavigationPageState extends State<NavigationPage> {
   bool isSigned = false;
 
   @override
@@ -43,8 +43,14 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  var usernamecontroller = TextEditingController();
   var passwordcontroller = TextEditingController();
+  var emailcontroller = TextEditingController();
+
+  login() {
+    FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailcontroller.text, password: passwordcontroller.text);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,7 +59,7 @@ class _LoginState extends State<Login> {
         alignment: Alignment.center,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
+          children: [
             Text(
               "Welcome to Flitter",
               style: mystyle(30, Colors.white, FontWeight.w600),
@@ -71,32 +77,26 @@ class _LoginState extends State<Login> {
             Container(
               width: 64,
               height: 64,
-              child: Image(
-                image: AssetImage('images/flutter1.png'),
-              ),
+              child: Image.asset('images/flutter1.png'),
             ),
-            SizedBox(
-              height: 20,
-            ),
+            SizedBox(height: 20),
             Container(
               width: MediaQuery.of(context).size.width,
               margin: EdgeInsets.only(left: 20, right: 20),
               child: TextField(
-                controller: usernamecontroller,
+                controller: emailcontroller,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    labelText: "email",
+                    labelText: 'Email',
                     labelStyle: mystyle(15),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20)),
                     prefixIcon: Icon(Icons.email)),
               ),
             ),
-            SizedBox(
-              height: 20,
-            ),
+            SizedBox(height: 20),
             Container(
               width: MediaQuery.of(context).size.width,
               margin: EdgeInsets.only(left: 20, right: 20),
@@ -106,20 +106,16 @@ class _LoginState extends State<Login> {
                 decoration: InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
-                    labelText: "password",
+                    labelText: 'Password',
                     labelStyle: mystyle(15),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20)),
                     prefixIcon: Icon(Icons.lock)),
               ),
             ),
-            SizedBox(height: 15.0),
+            SizedBox(height: 20),
             InkWell(
-              onTap: () {
-                FirebaseAuth.instance.signInWithEmailAndPassword(
-                    email: usernamecontroller.text + '@flitter.com',
-                    password: passwordcontroller.text);
-              },
+              onTap: () => login(),
               child: Container(
                 width: MediaQuery.of(context).size.width / 2,
                 height: 50,
@@ -128,31 +124,29 @@ class _LoginState extends State<Login> {
                     borderRadius: BorderRadius.circular(20)),
                 child: Center(
                   child: Text(
-                    "Login",
+                    'Login',
                     style: mystyle(20, Colors.black, FontWeight.w700),
                   ),
                 ),
               ),
             ),
-            SizedBox(
-              height: 30,
-            ),
+            SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
+              children: [
                 Text(
-                  'Dont have an account?',
+                  "Dont have an account?",
                   style: mystyle(20),
                 ),
-                SizedBox(
-                  width: 10.0,
-                ),
+                SizedBox(width: 10),
                 InkWell(
                   onTap: () => Navigator.push(context,
                       MaterialPageRoute(builder: (context) => SignUp())),
-                  child: Text("Register",
-                      style: mystyle(20, Colors.purple, FontWeight.w700)),
-                )
+                  child: Text(
+                    "Register!",
+                    style: mystyle(20, Colors.purple, FontWeight.w700),
+                  ),
+                ),
               ],
             )
           ],

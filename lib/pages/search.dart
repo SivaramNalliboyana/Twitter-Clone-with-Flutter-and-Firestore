@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flitter/pages/profile.dart';
 import 'package:flutter/material.dart';
+import 'package:twitter/pages/viewuser.dart';
 
-import '../variables.dart';
+import 'package:twitter/utils/variables.dart';
 
 class SearchPage extends StatefulWidget {
   @override
@@ -10,43 +10,44 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  Future<QuerySnapshot> searchresult;
-  searchuser(String str) {
+  Future<QuerySnapshot> searchuseresult;
+  searchuser(String s) {
     var users = usercollection
-        .where('username', isGreaterThanOrEqualTo: str)
+        .where('username', isGreaterThanOrEqualTo: s)
         .getDocuments();
+
     setState(() {
-      searchresult = users;
+      searchuseresult = users;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xffECE5DA),
-      appBar: AppBar(
-        title: TextFormField(
-          decoration: InputDecoration(
-              filled: true,
-              hintText: "Search for users..",
-              hintStyle: mystyle(18)),
-          onFieldSubmitted: searchuser,
+        backgroundColor: Color(0xffECE5DA),
+        appBar: AppBar(
+          title: TextFormField(
+            decoration: InputDecoration(
+                filled: true,
+                hintText: "Search for users..",
+                hintStyle: mystyle(18)),
+            onFieldSubmitted: searchuser,
+          ),
         ),
-      ),
-      body: searchresult == null
-          ? Center(
-              child: Text(
-                "Search for users....",
-                style: mystyle(25),
-              ),
-            )
-          : FutureBuilder(
-              future: searchresult,
-              builder: (BuildContext context, snapshot) {
-                if (!snapshot.hasData) {
-                  return CircularProgressIndicator();
-                }
-                return ListView.builder(
+        body: searchuseresult == null
+            ? Center(
+                child: Text(
+                  "Search for users....",
+                  style: mystyle(30),
+                ),
+              )
+            : FutureBuilder(
+                future: searchuseresult,
+                builder: (BuildContext context, snapshot) {
+                  if (!snapshot.hasData) {
+                    Center(child: CircularProgressIndicator());
+                  }
+                  return ListView.builder(
                     itemCount: snapshot.data.documents.length,
                     itemBuilder: (BuildContext context, int index) {
                       DocumentSnapshot user = snapshot.data.documents[index];
@@ -66,27 +67,23 @@ class _SearchPageState extends State<SearchPage> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) =>
-                                        ProfilePage(user['uid']))),
+                                        ViewUser(user['uid']))),
                             child: Container(
                               width: 90,
                               height: 40,
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                color: Colors.lightBlue,
-                              ),
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: Colors.lightBlue),
                               child: Center(
-                                child: Text(
-                                  "View",
-                                  style: mystyle(20),
-                                ),
+                                child: Text("View", style: mystyle(20)),
                               ),
                             ),
                           ),
                         ),
                       );
-                    });
-              },
-            ),
-    );
+                    },
+                  );
+                },
+              ));
   }
 }

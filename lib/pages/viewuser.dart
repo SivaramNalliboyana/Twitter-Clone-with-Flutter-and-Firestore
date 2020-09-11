@@ -5,13 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:twitter/comment.dart';
 import 'package:twitter/utils/variables.dart';
 
-class ProfilePage extends StatefulWidget {
+class ViewUser extends StatefulWidget {
+  final String uid;
+  ViewUser(this.uid);
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  _ViewUserState createState() => _ViewUserState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
-  String uid;
+class _ViewUserState extends State<ViewUser> {
+  String onlineuser;
   Stream userstream;
   String username;
   int following;
@@ -27,19 +29,20 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   getcurrentuserinfo() async {
+    print(widget.uid);
     var firebaseuser = await FirebaseAuth.instance.currentUser();
     DocumentSnapshot userdoc =
-        await usercollection.document(firebaseuser.uid).get();
+        await usercollection.document(widget.uid.trim()).get();
     var followersdocuments = await usercollection
-        .document(firebaseuser.uid)
+        .document(widget.uid)
         .collection('followers')
         .getDocuments();
     var followngdocuments = await usercollection
-        .document(firebaseuser.uid)
+        .document(widget.uid)
         .collection('following')
         .getDocuments();
     usercollection
-        .document(firebaseuser.uid)
+        .document(widget.uid)
         .collection('followers')
         .document(firebaseuser.uid)
         .get()
@@ -64,18 +67,62 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   getstream() async {
-    var firebaseuser = await FirebaseAuth.instance.currentUser();
     setState(() {
-      userstream =
-          tweetcollection.where('uid', isEqualTo: firebaseuser.uid).snapshots();
+      userstream = tweetcollection
+          .where('uid', isEqualTo: widget.uid.trim())
+          .snapshots();
     });
   }
 
   getcurrentuseruid() async {
     var firebaseuser = await FirebaseAuth.instance.currentUser();
     setState(() {
-      uid = firebaseuser.uid;
+      onlineuser = firebaseuser.uid;
     });
+  }
+
+  followuser() async {
+    var document = await usercollection
+        .document(widget.uid)
+        .collection('followers')
+        .document(onlineuser)
+        .get();
+
+    if (!document.exists) {
+      usercollection
+          .document(widget.uid)
+          .collection('followers')
+          .document(onlineuser)
+          .setData({});
+
+      usercollection
+          .document(onlineuser)
+          .collection('following')
+          .document(widget.uid)
+          .setData({});
+      setState(() {
+        followers++;
+
+        isfollowing = true;
+      });
+    } else {
+      usercollection
+          .document(widget.uid)
+          .collection('followers')
+          .document(onlineuser)
+          .delete();
+
+      usercollection
+          .document(onlineuser)
+          .collection('following')
+          .document(widget.uid)
+          .delete();
+      setState(() {
+        followers--;
+
+        isfollowing = false;
+      });
+    }
   }
 
   likepost(String documentid) async {
@@ -179,7 +226,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             height: 20,
                           ),
                           InkWell(
-                            onTap: () {},
+                            onTap: () => followuser(),
                             child: Container(
                               width: MediaQuery.of(context).size.width / 2,
                               height: 50,
@@ -189,7 +236,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                       colors: [Colors.blue, Colors.lightBlue])),
                               child: Center(
                                 child: Text(
-                                  "Edit Profile",
+                                  isfollowing == false ? "Follow" : "Unfollow",
                                   style: mystyle(
                                       25, Colors.white, FontWeight.w700),
                                 ),
@@ -302,7 +349,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                                         onTap: () => likepost(
                                                             tweetdoc['id']),
                                                         child: tweetdoc['likes']
-                                                                .contains(uid)
+                                                                .contains(
+                                                                    onlineuser)
                                                             ? Icon(
                                                                 Icons.favorite,
                                                                 color:

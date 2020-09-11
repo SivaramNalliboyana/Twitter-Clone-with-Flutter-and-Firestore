@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flitter/adduser.dart';
-import 'package:flitter/variables.dart';
 import 'package:flutter/material.dart';
+import 'package:twitter/utils/variables.dart';
 
 class SignUp extends StatefulWidget {
   @override
@@ -11,16 +10,21 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
   var usernamecontroller = TextEditingController();
   var passwordcontroller = TextEditingController();
+  var emailcontroller = TextEditingController();
 
-  signup() async {
+  signup() {
     FirebaseAuth.instance
         .createUserWithEmailAndPassword(
-      email: usernamecontroller.text + '@flitter.com',
-      password: passwordcontroller.text,
-    )
+            email: emailcontroller.text, password: passwordcontroller.text)
         .then((signeduser) {
-      AddUser().storeuser(
-          signeduser.user, usernamecontroller.text, passwordcontroller.text);
+      usercollection.document(signeduser.user.uid).setData({
+        'username': usernamecontroller.text,
+        'password': passwordcontroller.text,
+        'email': emailcontroller.text,
+        'uid': signeduser.user.uid,
+        'profilepic':
+            'https://www.accountingweb.co.uk/sites/all/modules/custom/sm_pp_user_profile/img/default-user.png'
+      });
     });
     Navigator.pop(context);
   }
@@ -35,9 +39,9 @@ class _SignUpState extends State<SignUp> {
           alignment: Alignment.center,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
+            children: [
               Text(
-                "Get started flittering",
+                "Get Started flittering",
                 style: mystyle(30, Colors.white, FontWeight.w600),
               ),
               SizedBox(
@@ -53,65 +57,60 @@ class _SignUpState extends State<SignUp> {
               Container(
                 width: 64,
                 height: 64,
-                child: Image(
-                  image: AssetImage('images/flutter1.png'),
-                ),
+                child: Image.asset('images/flutter1.png'),
               ),
-              SizedBox(
-                height: 20,
-              ),
+              SizedBox(height: 20),
               Container(
                 width: MediaQuery.of(context).size.width,
                 margin: EdgeInsets.only(left: 20, right: 20),
                 child: TextField(
-                  controller: usernamecontroller,
+                  controller: emailcontroller,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      labelText: "email",
+                      labelText: 'Email',
                       labelStyle: mystyle(15),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20)),
                       prefixIcon: Icon(Icons.email)),
                 ),
               ),
-              SizedBox(
-                height: 20,
-              ),
+              SizedBox(height: 20),
               Container(
                 width: MediaQuery.of(context).size.width,
                 margin: EdgeInsets.only(left: 20, right: 20),
                 child: TextField(
                   controller: passwordcontroller,
+                  obscureText: true,
                   decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      labelText: "Password",
+                      labelText: 'Password',
                       labelStyle: mystyle(15),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20)),
                       prefixIcon: Icon(Icons.lock)),
                 ),
               ),
-              SizedBox(
-                height: 20,
-              ),
+              SizedBox(height: 20),
               Container(
                 width: MediaQuery.of(context).size.width,
                 margin: EdgeInsets.only(left: 20, right: 20),
                 child: TextField(
+                  controller: usernamecontroller,
+                  obscureText: true,
                   decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      labelText: "Repeat Password",
+                      labelText: 'Username',
                       labelStyle: mystyle(15),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20)),
-                      prefixIcon: Icon(Icons.lock)),
+                      prefixIcon: Icon(Icons.person)),
                 ),
               ),
-              SizedBox(height: 15.0),
+              SizedBox(height: 20),
               InkWell(
                 onTap: () => signup(),
                 child: Container(
@@ -122,31 +121,29 @@ class _SignUpState extends State<SignUp> {
                       borderRadius: BorderRadius.circular(20)),
                   child: Center(
                     child: Text(
-                      "Register",
+                      'Register',
                       style: mystyle(20, Colors.black, FontWeight.w700),
                     ),
                   ),
                 ),
               ),
-              SizedBox(
-                height: 30,
-              ),
+              SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
+                children: [
                   Text(
-                    'I agree to',
+                    "I agree to",
                     style: mystyle(20),
                   ),
-                  SizedBox(
-                    width: 10.0,
-                  ),
+                  SizedBox(width: 10),
                   InkWell(
                     onTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => TermsPolicy())),
-                    child: Text("Terms of policy",
-                        style: mystyle(20, Colors.purple, FontWeight.w700)),
-                  )
+                        MaterialPageRoute(builder: (context) => Terms())),
+                    child: Text(
+                      "Terms of policy",
+                      style: mystyle(20, Colors.purple, FontWeight.w700),
+                    ),
+                  ),
                 ],
               )
             ],
@@ -157,12 +154,12 @@ class _SignUpState extends State<SignUp> {
   }
 }
 
-class TermsPolicy extends StatefulWidget {
+class Terms extends StatefulWidget {
   @override
-  _TermsPolicyState createState() => _TermsPolicyState();
+  _TermsState createState() => _TermsState();
 }
 
-class _TermsPolicyState extends State<TermsPolicy> {
+class _TermsState extends State<Terms> {
   @override
   Widget build(BuildContext context) {
     return Container();

@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flitter/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:twitter/utils/variables.dart';
 
 class AddTweet extends StatefulWidget {
   @override
@@ -13,12 +13,12 @@ class AddTweet extends StatefulWidget {
 }
 
 class _AddTweetState extends State<AddTweet> {
-  bool uploading = false;
   File imagepath;
-  TextEditingController tweet = TextEditingController();
+  TextEditingController tweetcontroller = TextEditingController();
+  bool uploading = false;
 
-  pickimage(ImageSource source) async {
-    final image = await ImagePicker().getImage(source: source);
+  pickImage(ImageSource imgsource) async {
+    final image = await ImagePicker().getImage(source: imgsource);
     setState(() {
       imagepath = File(image.path);
     });
@@ -30,16 +30,16 @@ class _AddTweetState extends State<AddTweet> {
         context: context,
         builder: (context) {
           return SimpleDialog(
-            children: <Widget>[
+            children: [
               SimpleDialogOption(
-                onPressed: () => pickimage(ImageSource.gallery),
+                onPressed: () => pickImage(ImageSource.gallery),
                 child: Text(
                   "Image from gallery",
                   style: mystyle(20),
                 ),
               ),
               SimpleDialogOption(
-                onPressed: () => pickimage(ImageSource.camera),
+                onPressed: () => pickImage(ImageSource.camera),
                 child: Text(
                   "Image from camera",
                   style: mystyle(20),
@@ -58,67 +58,69 @@ class _AddTweetState extends State<AddTweet> {
   }
 
   uploadimage(String id) async {
-    StorageUploadTask storageUploadTask = pictures.child(id).putFile(imagepath);
+    StorageUploadTask storageUploadTask =
+        tweetpictures.child(id).putFile(imagepath);
     StorageTaskSnapshot storageTaskSnapshot =
         await storageUploadTask.onComplete;
     String downloadurl = await storageTaskSnapshot.ref.getDownloadURL();
     return downloadurl;
   }
 
-  postweet() async {
+  posttweet() async {
     setState(() {
       uploading = true;
     });
-    var tweetdocuments = await tweetcollection.getDocuments();
-    int length = tweetdocuments.documents.length;
     var firebaseuser = await FirebaseAuth.instance.currentUser();
-    DocumentSnapshot userdocument =
+    DocumentSnapshot userdoc =
         await usercollection.document(firebaseuser.uid).get();
+    var alldocuments = await tweetcollection.getDocuments();
+    int length = alldocuments.documents.length;
     // 3 conditions
     // only tweet
-    if (tweet.text != '' && imagepath == null) {
+    if (tweetcontroller.text != '' && imagepath == null) {
       tweetcollection.document('Tweet $length').setData({
-        'username': userdocument['username'],
-        'profilepic': userdocument['profilepic'],
+        'username': userdoc['username'],
+        'profilepic': userdoc['profilepic'],
         'uid': firebaseuser.uid,
         'id': 'Tweet $length',
+        'tweet': tweetcontroller.text,
         'likes': [],
         'commentcount': 0,
-        'tweet': tweet.text,
         'shares': 0,
         'type': 1
       });
       Navigator.pop(context);
     }
-    // only picture
-    if (tweet.text == '' && imagepath != null) {
-      String downloadurl = await uploadimage('Tweet $length');
+    // only image
+    if (tweetcontroller.text == '' && imagepath != null) {
+      String imageurl = await uploadimage('Tweet $length');
       tweetcollection.document('Tweet $length').setData({
-        'username': userdocument['username'],
-        'profilepic': userdocument['profilepic'],
+        'username': userdoc['username'],
+        'profilepic': userdoc['profilepic'],
         'uid': firebaseuser.uid,
         'id': 'Tweet $length',
+        'image': imageurl,
         'likes': [],
         'commentcount': 0,
-        'picture': downloadurl,
         'shares': 0,
         'type': 2
       });
       Navigator.pop(context);
     }
-    // tweet and picture
-    if (tweet.text != '' && imagepath != null) {
-      String downloadurl = await uploadimage('Tweet $length');
+
+    // tweet and image
+    if (tweetcontroller.text != '' && imagepath != null) {
+      String imageurl = await uploadimage('Tweet $length');
       tweetcollection.document('Tweet $length').setData({
-        'username': userdocument['username'],
-        'profilepic': userdocument['profilepic'],
+        'username': userdoc['username'],
+        'profilepic': userdoc['profilepic'],
         'uid': firebaseuser.uid,
         'id': 'Tweet $length',
+        'tweet': tweetcontroller.text,
+        'image': imageurl,
         'likes': [],
         'commentcount': 0,
-        'picture': downloadurl,
         'shares': 0,
-        'tweet': tweet.text,
         'type': 3
       });
       Navigator.pop(context);
@@ -129,22 +131,22 @@ class _AddTweetState extends State<AddTweet> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        onPressed: () => postweet(),
-        child: Icon(
-          Icons.publish,
-          size: 40,
-        ),
-      ),
+          onPressed: () => posttweet(),
+          child: Icon(
+            Icons.publish,
+            size: 32,
+          )),
       appBar: AppBar(
         leading: InkWell(
           onTap: () => Navigator.pop(context),
           child: Icon(Icons.arrow_back, size: 32),
         ),
+        centerTitle: true,
         title: Text(
           "Add Tweet",
           style: mystyle(20),
         ),
-        actions: <Widget>[
+        actions: [
           InkWell(
             onTap: () => optionsdialog(),
             child: Icon(
@@ -154,19 +156,16 @@ class _AddTweetState extends State<AddTweet> {
           )
         ],
       ),
-      body: uploading == true
-          ? Center(
-              child: Text('Uploading...', style: mystyle(30)),
-            )
-          : Column(
-              children: <Widget>[
+      body: uploading == false
+          ? Column(
+              children: [
                 Expanded(
                   child: TextField(
+                    controller: tweetcontroller,
                     maxLines: null,
-                    controller: tweet,
                     style: mystyle(20),
                     decoration: InputDecoration(
-                        labelText: "What is happening now?",
+                        labelText: "What's happening now",
                         labelStyle: mystyle(25),
                         border: InputBorder.none),
                   ),
@@ -181,6 +180,12 @@ class _AddTweetState extends State<AddTweet> {
                             image: FileImage(imagepath),
                           )
               ],
+            )
+          : Center(
+              child: Text(
+                "Uploading....",
+                style: mystyle(25),
+              ),
             ),
     );
   }
