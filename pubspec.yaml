@@ -23,6 +23,7 @@ environment:
 dependencies:
   cloud_firestore:
   firebase_auth:
+  firebase_core:
   firebase_storage:
   image_picker:
   esys_flutter_share:
