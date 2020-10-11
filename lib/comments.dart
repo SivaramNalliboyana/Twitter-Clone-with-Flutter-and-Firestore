@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flitter/variables.dart';
+import 'package:twitter/variables.dart';
 import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as Tago;
 
@@ -16,17 +16,15 @@ class CommentsPage extends StatefulWidget {
 class _CommentsPageState extends State<CommentsPage> {
   TextEditingController commentcontroller = TextEditingController();
   savecomment() async {
-    DocumentSnapshot document = await tweetcollection.document(widget.id).get();
-    var documents = await tweetcollection
-        .document(widget.id)
-        .collection('comments')
-        .getDocuments();
-    var length = documents.documents.length;
+    DocumentSnapshot document = await tweetcollection.doc(widget.id).get();
+    var documents =
+        await tweetcollection.doc(widget.id).collection('comments').get();
+    var length = documents.docs.length;
     tweetcollection
-        .document(widget.id)
+        .doc(widget.id)
         .collection('comments')
-        .document('Comment $length')
-        .setData({
+        .doc('Comment $length')
+        .set({
       'username': widget.username,
       'uid': widget.uid,
       'profilepic': widget.profilepic,
@@ -35,8 +33,8 @@ class _CommentsPageState extends State<CommentsPage> {
       'comment': commentcontroller.text
     });
     tweetcollection
-        .document(widget.id)
-        .updateData({'commentcount': document['commentcount'] + 1});
+        .doc(widget.id)
+        .update({'commentcount': document.data()['commentcount'] + 1});
     commentcontroller.clear();
   }
 
@@ -53,7 +51,7 @@ class _CommentsPageState extends State<CommentsPage> {
                 Expanded(
                   child: StreamBuilder(
                       stream: tweetcollection
-                          .document(widget.id)
+                          .doc(widget.id)
                           .collection('comments')
                           .snapshots(),
                       builder: (BuildContext context, snapshot) {
@@ -62,20 +60,20 @@ class _CommentsPageState extends State<CommentsPage> {
                         }
                         return ListView.builder(
                             shrinkWrap: true,
-                            itemCount: snapshot.data.documents.length,
+                            itemCount: snapshot.data.docs.length,
                             itemBuilder: (BuildContext context, int index) {
                               DocumentSnapshot comment =
-                                  snapshot.data.documents[index];
+                                  snapshot.data.docs[index];
                               return ListTile(
                                 leading: CircleAvatar(
                                   backgroundColor: Colors.white,
-                                  backgroundImage:
-                                      NetworkImage(comment['profilepic']),
+                                  backgroundImage: NetworkImage(
+                                      comment.data()['profilepic']),
                                 ),
                                 title: Row(
                                   children: <Widget>[
                                     Text(
-                                      "${comment['username']}:",
+                                      "${comment.data()['username']}:",
                                       style: mystyle(
                                           20, Colors.black, FontWeight.w700),
                                     ),
@@ -83,14 +81,14 @@ class _CommentsPageState extends State<CommentsPage> {
                                       width: 5.0,
                                     ),
                                     Text(
-                                      comment['comment'],
+                                      comment.data()['comment'],
                                       style: mystyle(
                                           20, Colors.black, FontWeight.w500),
                                     )
                                   ],
                                 ),
                                 subtitle: Text(
-                                    '${Tago.format(comment["time"].toDate())}'),
+                                    '${Tago.format(comment.data()["time"].toDate())}'),
                               );
                             });
                       }),

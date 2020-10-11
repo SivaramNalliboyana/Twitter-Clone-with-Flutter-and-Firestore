@@ -70,17 +70,16 @@ class _AddTweetState extends State<AddTweet> {
     setState(() {
       uploading = true;
     });
-    var firebaseuser = await FirebaseAuth.instance.currentUser();
-    DocumentSnapshot userdoc =
-        await usercollection.document(firebaseuser.uid).get();
-    var alldocuments = await tweetcollection.getDocuments();
-    int length = alldocuments.documents.length;
+    var firebaseuser = FirebaseAuth.instance.currentUser;
+    DocumentSnapshot userdoc = await usercollection.doc(firebaseuser.uid).get();
+    var alldocuments = await tweetcollection.get();
+    int length = alldocuments.docs.length;
     // 3 conditions
     // only tweet
     if (tweetcontroller.text != '' && imagepath == null) {
-      tweetcollection.document('Tweet $length').setData({
-        'username': userdoc['username'],
-        'profilepic': userdoc['profilepic'],
+      tweetcollection.doc('Tweet $length').set({
+        'username': userdoc.data()['username'],
+        'profilepic': userdoc.data()['profilepic'],
         'uid': firebaseuser.uid,
         'id': 'Tweet $length',
         'tweet': tweetcontroller.text,
@@ -94,9 +93,9 @@ class _AddTweetState extends State<AddTweet> {
     // only image
     if (tweetcontroller.text == '' && imagepath != null) {
       String imageurl = await uploadimage('Tweet $length');
-      tweetcollection.document('Tweet $length').setData({
-        'username': userdoc['username'],
-        'profilepic': userdoc['profilepic'],
+      tweetcollection.doc('Tweet $length').set({
+        'username': userdoc.data()['username'],
+        'profilepic': userdoc.data()['profilepic'],
         'uid': firebaseuser.uid,
         'id': 'Tweet $length',
         'image': imageurl,
@@ -111,9 +110,9 @@ class _AddTweetState extends State<AddTweet> {
     // tweet and image
     if (tweetcontroller.text != '' && imagepath != null) {
       String imageurl = await uploadimage('Tweet $length');
-      tweetcollection.document('Tweet $length').setData({
-        'username': userdoc['username'],
-        'profilepic': userdoc['profilepic'],
+      tweetcollection.doc('Tweet $length').set({
+        'username': userdoc.data()['username'],
+        'profilepic': userdoc.data()['profilepic'],
         'uid': firebaseuser.uid,
         'id': 'Tweet $length',
         'tweet': tweetcontroller.text,

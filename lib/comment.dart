@@ -15,26 +15,21 @@ class _CommentPageState extends State<CommentPage> {
   var commentcontroller = TextEditingController();
 
   addcoment() async {
-    var firebaseuser = await FirebaseAuth.instance.currentUser();
-    DocumentSnapshot userdoc =
-        await usercollection.document(firebaseuser.uid).get();
-    tweetcollection
-        .document(widget.documentid)
-        .collection('comments')
-        .document()
-        .setData({
+    var firebaseuser = FirebaseAuth.instance.currentUser;
+    DocumentSnapshot userdoc = await usercollection.doc(firebaseuser.uid).get();
+    tweetcollection.doc(widget.documentid).collection('comments').doc().set({
       'comment': commentcontroller.text,
-      'username': userdoc['username'],
-      'uid': userdoc['uid'],
-      'profilepic': userdoc['profilepic'],
+      'username': userdoc.data()['username'],
+      'uid': userdoc.data()['uid'],
+      'profilepic': userdoc.data()['profilepic'],
       'time': DateTime.now()
     });
     DocumentSnapshot commentcount =
-        await tweetcollection.document(widget.documentid).get();
+        await tweetcollection.doc(widget.documentid).get();
 
     tweetcollection
-        .document(widget.documentid)
-        .updateData({'commentcount': commentcount['commentcount'] + 1});
+        .doc(widget.documentid)
+        .update({'commentcount': commentcount.data()['commentcount'] + 1});
     commentcontroller.clear();
   }
 
@@ -51,7 +46,7 @@ class _CommentPageState extends State<CommentPage> {
               Expanded(
                 child: StreamBuilder(
                   stream: tweetcollection
-                      .document(widget.documentid)
+                      .doc(widget.documentid)
                       .collection('comments')
                       .snapshots(),
                   builder: (context, snapshot) {
@@ -60,27 +55,27 @@ class _CommentPageState extends State<CommentPage> {
                     }
                     return ListView.builder(
                         shrinkWrap: true,
-                        itemCount: snapshot.data.documents.length,
+                        itemCount: snapshot.data.docs.length,
                         itemBuilder: (context, index) {
                           DocumentSnapshot commentdoc =
-                              snapshot.data.documents[index];
+                              snapshot.data.docs[index];
                           return ListTile(
                             leading: CircleAvatar(
                               backgroundColor: Colors.white,
                               backgroundImage:
-                                  NetworkImage(commentdoc['profilepic']),
+                                  NetworkImage(commentdoc.data()['profilepic']),
                             ),
                             title: Row(
                               children: [
                                 Text(
-                                  commentdoc['username'],
+                                  commentdoc.data()['username'],
                                   style: mystyle(20),
                                 ),
                                 SizedBox(
                                   width: 15.0,
                                 ),
                                 Text(
-                                  commentdoc['comment'],
+                                  commentdoc.data()['comment'],
                                   style:
                                       mystyle(20, Colors.grey, FontWeight.w500),
                                 ),
@@ -88,7 +83,7 @@ class _CommentPageState extends State<CommentPage> {
                             ),
                             subtitle: Text(
                               tAgo
-                                  .format(commentdoc['time'].toDate())
+                                  .format(commentdoc.data()['time'].toDate())
                                   .toString(),
                               style: mystyle(15),
                             ),

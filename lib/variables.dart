@@ -11,9 +11,11 @@ TextStyle mystyle(double size, [Color color, FontWeight fw]) {
   );
 }
 
-CollectionReference usercollection = Firestore.instance.collection('users');
+CollectionReference usercollection =
+    FirebaseFirestore.instance.collection('users');
 String exampleimage =
     'https://upload.wikimedia.org/wikipedia/commons/9/9a/Mahesh_Babu_in_Spyder_%28cropped%29.jpg';
 
-CollectionReference tweetcollection = Firestore.instance.collection('tweets');
+CollectionReference tweetcollection =
+    FirebaseFirestore.instance.collection('tweets');
 StorageReference pictures = FirebaseStorage.instance.ref().child('tweetpics');

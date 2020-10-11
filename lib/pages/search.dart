@@ -12,9 +12,8 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   Future<QuerySnapshot> searchuseresult;
   searchuser(String s) {
-    var users = usercollection
-        .where('username', isGreaterThanOrEqualTo: s)
-        .getDocuments();
+    var users =
+        usercollection.where('username', isGreaterThanOrEqualTo: s).get();
 
     setState(() {
       searchuseresult = users;
@@ -48,18 +47,19 @@ class _SearchPageState extends State<SearchPage> {
                     Center(child: CircularProgressIndicator());
                   }
                   return ListView.builder(
-                    itemCount: snapshot.data.documents.length,
+                    itemCount: snapshot.data.docs.length,
                     itemBuilder: (BuildContext context, int index) {
-                      DocumentSnapshot user = snapshot.data.documents[index];
+                      DocumentSnapshot user = snapshot.data.docs[index];
                       return Card(
                         elevation: 8.0,
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundColor: Colors.white,
-                            backgroundImage: NetworkImage(user['profilepic']),
+                            backgroundImage:
+                                NetworkImage(user.data()['profilepic']),
                           ),
                           title: Text(
-                            user['username'],
+                            user.data()['username'],
                             style: mystyle(25),
                           ),
                           trailing: InkWell(
@@ -67,7 +67,7 @@ class _SearchPageState extends State<SearchPage> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) =>
-                                        ViewUser(user['uid']))),
+                                        ViewUser(user.data()['uid']))),
                             child: Container(
                               width: 90,
                               height: 40,

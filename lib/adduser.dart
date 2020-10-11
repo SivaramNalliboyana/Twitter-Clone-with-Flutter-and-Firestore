@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flitter/variables.dart';
+import 'package:twitter/variables.dart';
 
 class AddUser {
   storeuser(user, username, password) {
-    usercollection.document(user.uid).setData({
+    usercollection.doc(user.uid).set({
       'email': user.email,
       'password': password,
       'username': username,
